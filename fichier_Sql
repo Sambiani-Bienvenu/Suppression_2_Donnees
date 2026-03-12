@@ -1,0 +1,36 @@
+--Nombre de ligne à Supprimer
+SELECT COUNT(*) as lignes_a_supprimer 
+FROM Ma_Table 
+WHERE Colonne = 'Condition';
+
+-- Visualisation des 10 première ligne
+SELECT TOP 10 * FROM Ma_Table WHERE Colonne = 'Condition';
+
+BEGIN TRANSACTION Suppression;
+BEGIN TRY
+    --Creation de la sauvegarde dans la table Ma_sauvegarde
+    SELECT * INTO Ma_sauvegarde
+    FROM Ma_Table 
+    WHERE Colonne = 'Condition';
+    
+    --Suppression ou TRUNCATE TABLE Ma_Table;
+    DELETE FROM Ma_Table 
+    WHERE Colonne = 'Condition';
+    
+    -- Vérification
+    DECLARE @nbLignes INT;
+    SELECT @nbLignes = COUNT(*) FROM Personnees WHERE Colonne = 'Condition';
+    
+    PRINT 'Lignes restantes à Suppimer : ' + CAST(@nbLignes AS VARCHAR);
+        
+    COMMIT TRANSACTION Suppression;
+    PRINT '✅ Suppression validée avec succès';
+
+END TRY
+BEGIN CATCH
+    -- En cas d'erreur, annulation automatique
+    ROLLBACK TRANSACTION Suppression;
+    PRINT 'Transaction annulée';
+    PRINT 'Message : ' + ERROR_MESSAGE();
+END CATCH;
+
